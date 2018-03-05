@@ -41,7 +41,7 @@ while True:
             color = orange
 
         # Save the face
-        if weight[0] > 5:
+        if weight[0] > 6:
             catcher.catch(image=frame[y:y+h, x:x+w])
 
         cv2.rectangle(frame, (x, y), (x+w, y+h), color=color, thickness=2)
