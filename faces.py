@@ -2,7 +2,7 @@ import cv2
 
 from cv2 import CASCADE_SCALE_IMAGE
 
-from face_catcher import FaceCatcher
+from face_catcher import FaceCatcher, ConfidenceFilter, TimeFilter
 
 cascPath = '/Users/will/miniconda3/envs/faces/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml'
 
@@ -10,7 +10,11 @@ cascPath = '/Users/will/miniconda3/envs/faces/share/OpenCV/haarcascades/haarcasc
 faceCascade = cv2.CascadeClassifier(cascPath)
 
 video_capture = cv2.VideoCapture(0)
-catcher = FaceCatcher()
+CONFIDENCE_THRESHOLD = 5
+catcher = FaceCatcher(filters=[
+    ConfidenceFilter(threshold=CONFIDENCE_THRESHOLD),
+    TimeFilter(seconds=4)
+])
 
 while True:
     # Capture frame-by-frame
@@ -35,14 +39,16 @@ while True:
     for (x, y, w, h), weight in zip(faces, level_weights):
 
         # Color based on confidence
-        if weight[0] > 4:
+        if weight[0] > CONFIDENCE_THRESHOLD:
             color = green
         else:
             color = orange
 
         # Save the face
-        if weight[0] > 6:
-            catcher.catch(image=frame[y:y+h, x:x+w])
+        catcher.catch(
+            image=frame[y:y+h, x:x+w],
+            confidence=weight[0],
+        )
 
         cv2.rectangle(frame, (x, y), (x+w, y+h), color=color, thickness=2)
         cv2.putText(
