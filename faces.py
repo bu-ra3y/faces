@@ -2,12 +2,15 @@ import cv2
 
 from cv2 import CASCADE_SCALE_IMAGE
 
+from face_catcher import FaceCatcher
+
 cascPath = '/Users/will/miniconda3/envs/faces/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml'
 
 
 faceCascade = cv2.CascadeClassifier(cascPath)
 
 video_capture = cv2.VideoCapture(0)
+catcher = FaceCatcher()
 
 while True:
     # Capture frame-by-frame
@@ -15,24 +18,31 @@ while True:
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    faces, reject_levels, level_weights = faceCascade.detectMultiScale3(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(30, 30),
-        flags=CASCADE_SCALE_IMAGE,
-        outputRejectLevels=True
-    )
+    faces, reject_levels, level_weights = \
+        faceCascade.detectMultiScale3(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30),
+            flags=CASCADE_SCALE_IMAGE,
+            outputRejectLevels=True
+        )
 
     # Draw a rectangle around the faces
     # color is in (b, g, r)
     orange = (63, 205, 252)
     green = (64, 255, 60)
     for (x, y, w, h), weight in zip(faces, level_weights):
-        if weight[0] > 3:
+
+        # Color based on confidence
+        if weight[0] > 4:
             color = green
         else:
             color = orange
+
+        # Save the face
+        if weight[0] > 5:
+            catcher.catch(image=frame[y:y+h, x:x+w])
 
         cv2.rectangle(frame, (x, y), (x+w, y+h), color=color, thickness=2)
         cv2.putText(
